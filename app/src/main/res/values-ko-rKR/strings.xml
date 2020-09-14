@@ -5,5 +5,7 @@
     <string name="register">회원가입</string>
     <string name="password">비밀번호</string>
     <string name="email_address">이메일 주소</string>
+    <string name="password_check">비밀번호 확인</string>
+
 
 </resources>
