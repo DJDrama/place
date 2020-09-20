@@ -7,5 +7,11 @@
     <string name="email_address">이메일 주소</string>
     <string name="password_check">비밀번호 확인</string>
 
+    <string name="cd_me">내 정보</string>
+    <string name="loading">로딩 중\.\.\.</string>
+    <string name="join_date">가입한 날짜</string>
+
+    <string name="label_map_fragment">지도</string>
+    <string name="label_my_profile">마이 프로필</string>
 
 </resources>

@@ -9,10 +9,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.place.www.MainActivity
+import com.place.www.ui.main.MainActivity
 import com.place.www.R
+import com.place.www.ui.showToast
 import kotlinx.android.synthetic.main.fragment_login.*
 
 class LoginFragment : Fragment(R.layout.fragment_login), View.OnClickListener {
@@ -49,6 +52,15 @@ class LoginFragment : Fragment(R.layout.fragment_login), View.OnClickListener {
     private fun login() {
         val email = edt_email.text.toString()
         val password = edt_password.text.toString()
+        if(email.isEmpty() || email.isBlank()){
+            requireContext().showToast("이메일을 입력해주세요.")
+            return
+        }
+        if(password.isEmpty() || password.isBlank()){
+            requireContext().showToast("비밀번호를 입력해주세요.")
+            return
+        }
+
         firebaseAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -59,10 +71,17 @@ class LoginFragment : Fragment(R.layout.fragment_login), View.OnClickListener {
                     Log.w("LoginFragment", "signInWithEmail:failure", task.exception);
                     when(task.exception){
                         is FirebaseAuthInvalidUserException ->{
-                            Toast.makeText(requireContext(), "일치하는 회원이 없습니다.",
-                                Toast.LENGTH_SHORT).show();
+                            requireContext().showToast("일치하는 회원이 없습니다.")
                         }
-                        /** TODO : Find other exceptions **/
+                        is FirebaseNetworkException ->{
+                            requireContext().showToast("인터넷 연결을 확인해주세요.")
+                        }
+                        is FirebaseAuthInvalidCredentialsException ->{
+                            requireContext().showToast("이메일 비밀번호를 확인해주세요.")
+                        }
+                        else->{
+                            requireContext().showToast("알 수 없는 에러 발생!")
+                        }
                     }
                 }
             }
