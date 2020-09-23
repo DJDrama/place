@@ -59,10 +59,13 @@ dependencies {
     def firebaseAuthVersion='19.4.0'
     implementation "com.google.firebase:firebase-auth:$firebaseAuthVersion"
 
-    // -- Google Play Services - Location, maps
+    // -- Google Play Services - Location, maps, places
     def version_gms_location = "17.0.0"
     implementation "com.google.android.gms:play-services-location:$version_gms_location"
 
     def maps_version = "3.1.0-beta"
     implementation "com.google.android.libraries.maps:maps:$maps_version"
+
+    def placesVersion = "2.4.0"
+    implementation "com.google.android.libraries.places:places:$placesVersion"
 }

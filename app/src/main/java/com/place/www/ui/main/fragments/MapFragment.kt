@@ -1,7 +1,9 @@
 package com.place.www.ui.main.fragments
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
@@ -25,22 +27,33 @@ import com.google.android.libraries.maps.MapView
 import com.google.android.libraries.maps.OnMapReadyCallback
 import com.google.android.libraries.maps.model.LatLng
 import com.google.android.libraries.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.AutocompleteActivity
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.snackbar.Snackbar
 import com.place.www.R
 import com.place.www.databinding.FragmentMapBinding
 import com.place.www.ui.showToast
 
 class MapFragment : Fragment(), OnMapReadyCallback {
-    companion object {
+     companion object {
         const val ZOOM_LEVEL = 13f
-        private const val REQUESTING_LOCATION_UPDATES_KEY = "REQUESTING_LOCATION_UPDATES_KEY"
-        private const val REQUEST_CODE_PERMISSION = 101
-        private const val locationPermission = Manifest.permission.ACCESS_FINE_LOCATION
-        private const val MAX_NUMBER_REQUEST_PERMISSIONS = 2
-        private const val UPDATE_INTERVAL = 10 * 1000L
-        private const val FASTEST_INTERVAL = 2000L
-        private const val REQUEST_CHECK_SETTINGS = 1011
+        const val REQUESTING_LOCATION_UPDATES_KEY = "REQUESTING_LOCATION_UPDATES_KEY"
+        const val REQUEST_CODE_PERMISSION = 101
+        const val locationPermission = Manifest.permission.ACCESS_FINE_LOCATION
+        const val MAX_NUMBER_REQUEST_PERMISSIONS = 2
+        const val UPDATE_INTERVAL = 10 * 1000L
+        const val FASTEST_INTERVAL = 2000L
+        const val REQUEST_CHECK_SETTINGS = 1011
+        const val AUTOCOMPLETE_REQUEST_CODE = 1
     }
+
+    /** Places API **/
+    // Set the fields to specify which types of place data to
+    // return after the user has made a selection.
+    private val fields = listOf(Place.Field.ID, Place.Field.NAME)
 
     private var mHasPermission: Boolean = false
     private var mPermissionRequestCount: Int = 0
@@ -49,7 +62,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var locationCallback: LocationCallback? = null
     private var requestingLocationUpdates = false
 
-    private var googleMap: GoogleMap ?=null
+    private var googleMap: GoogleMap? = null
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
@@ -95,17 +108,25 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         fusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(requireContext())
         updateValuesFromBundle(savedInstanceState)
+
         binding.map.let {
             it.onCreate(savedInstanceState)
             it.getMapAsync(this)
         }
+        binding.ivSearch.setOnClickListener {
+            // Start the autocomplete intent.
+            val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
+                .build(requireContext())
+            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
+        }
 
         subscribeObservers()
     }
-    private fun subscribeObservers(){
-        mapFragmentViewModel.location.observe(viewLifecycleOwner){
-            it?.let{location->
-                googleMap?.let{gMap->
+
+    private fun subscribeObservers() {
+        mapFragmentViewModel.location.observe(viewLifecycleOwner) {
+            it?.let { location ->
+                googleMap?.let { gMap ->
                     with(gMap) {
                         val latLng = LatLng(
                             location.latitude,
@@ -121,12 +142,37 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         addMarker(MarkerOptions().position(latLng))
                     }
                 }
-            } ?:  if (requestingLocationUpdates) {
+            } ?: if (requestingLocationUpdates) {
                 startLocationUpdates()
             } else {
                 setLocationSettings()
             }
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
+            when (resultCode) {
+                Activity.RESULT_OK -> {
+                    data?.let {
+                        val place = Autocomplete.getPlaceFromIntent(data)
+                        Log.e("MapFragment", "Place: ${place.name}, ${place.id}")
+                    }
+                }
+                AutocompleteActivity.RESULT_ERROR -> {
+                    // TODO: Handle the error.
+                    data?.let {
+                        val status = Autocomplete.getStatusFromIntent(data)
+                        Log.e("MapFragment", status.statusMessage?: " ")
+                    }
+                }
+                Activity.RESULT_CANCELED -> {
+                    // The user canceled the operation.
+                }
+            }
+            return
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun requestPermissionsIfNecessary() {
