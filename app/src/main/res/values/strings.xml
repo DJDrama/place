@@ -10,5 +10,9 @@
     <string name="join_date">Joined Date</string>
     <string name="label_map_fragment">Map</string>
     <string name="label_my_profile">My Profile</string>
+    <string name="set_permissions_in_settings">Go to Settings -> Apps and Notifications -> Place -> App Permissions and grant access to Location.</string>
+
+    <string name="google_map_api_key">Get your own key</string>
+    
 
 </resources>
