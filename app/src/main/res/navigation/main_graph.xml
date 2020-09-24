@@ -13,10 +13,22 @@
         <action
             android:id="@+id/action_mapFragment_to_myProfileFragment"
             app:destination="@id/myProfileFragment" />
+        <action
+            android:id="@+id/action_mapFragment_to_mapDetailFragment"
+            app:destination="@id/mapDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/myProfileFragment"
         android:name="com.place.www.ui.main.fragments.MyProfileFragment"
         android:label="@string/label_my_profile"
         tools:layout="@layout/fragment_my_profile" />
+    <fragment
+        android:id="@+id/mapDetailFragment"
+        tools:layout="@layout/fragment_map_detail"
+        android:name="com.place.www.ui.main.fragments.MapDetailFragment"
+        android:label="MapDetailFragment" >
+        <argument
+            android:name="locationItem"
+            app:argType="com.place.www.model.LocationItem" />
+    </fragment>
 </navigation>

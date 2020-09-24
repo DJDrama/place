@@ -2,17 +2,14 @@ package com.place.www.ui.main.fragments
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.*
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
@@ -23,22 +20,22 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
-import com.google.android.libraries.maps.MapView
 import com.google.android.libraries.maps.OnMapReadyCallback
 import com.google.android.libraries.maps.model.LatLng
+import com.google.android.libraries.maps.model.Marker
 import com.google.android.libraries.maps.model.MarkerOptions
-import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
-import com.google.android.material.snackbar.Snackbar
 import com.place.www.R
 import com.place.www.databinding.FragmentMapBinding
+import com.place.www.model.LocationItem
 import com.place.www.ui.showToast
 
-class MapFragment : Fragment(), OnMapReadyCallback {
-     companion object {
+
+class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+    companion object {
         const val ZOOM_LEVEL = 13f
         const val REQUESTING_LOCATION_UPDATES_KEY = "REQUESTING_LOCATION_UPDATES_KEY"
         const val REQUEST_CODE_PERMISSION = 101
@@ -53,7 +50,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     /** Places API **/
     // Set the fields to specify which types of place data to
     // return after the user has made a selection.
-    private val fields = listOf(Place.Field.ID, Place.Field.NAME)
+    private val fields =
+        listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
 
     private var mHasPermission: Boolean = false
     private var mPermissionRequestCount: Int = 0
@@ -63,6 +61,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var requestingLocationUpdates = false
 
     private var googleMap: GoogleMap? = null
+
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
@@ -80,11 +79,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onDestroyView() {
         super.onDestroyView()
         binding.map.onDestroy()
-        _binding = null
         googleMap?.clear()
         if (locationCallback != null) {
             locationCallback = null
         }
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -98,7 +97,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 for (location in locationResult.locations) {
                     // Update UI with location data
 
-                    mapFragmentViewModel.setMyLocation(location)
+                    mapFragmentViewModel.setCurrentLocation(
+                        LocationItem(
+                            id = "CURRENT_LOCATION",
+                            name = "Current Location",
+                            latLng = LatLng(location.latitude, location.longitude),
+                            address = ""
+                        )
+                    )
                     //just do once so break
                     stopLocationUpdates()
                     break
@@ -124,28 +130,40 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun subscribeObservers() {
-        mapFragmentViewModel.location.observe(viewLifecycleOwner) {
-            it?.let { location ->
+        mapFragmentViewModel.locationItem.observe(viewLifecycleOwner) {
+            it?.let { locationItem ->
                 googleMap?.let { gMap ->
                     with(gMap) {
-                        val latLng = LatLng(
-                            location.latitude,
-                            location.longitude
-                        )
                         moveCamera(
                             CameraUpdateFactory.newLatLngZoom(
-                                latLng,
+                                locationItem.latLng,
                                 ZOOM_LEVEL
                             )
                         )
-                        //clear()
-                        addMarker(MarkerOptions().position(latLng))
+                        clear()
+                        val markerOptions =
+                            MarkerOptions().position(locationItem.latLng!!).title(locationItem.name)
+                        val marker = addMarker(markerOptions)
+                        marker.showInfoWindow()
                     }
                 }
             } ?: if (requestingLocationUpdates) {
                 startLocationUpdates()
             } else {
                 setLocationSettings()
+            }
+        }
+        mapFragmentViewModel.infoWindowClicked.observe(viewLifecycleOwner){
+            it?.let{boolValue->
+                if(boolValue){
+                    mapFragmentViewModel.getLocationItem()?.let{locationItem->
+                        val action = MapFragmentDirections.actionMapFragmentToMapDetailFragment(
+                            locationItem
+                        )
+                        findNavController().navigate(action)
+                        mapFragmentViewModel.setInfoWindowClicked(false)
+                    }
+                }
             }
         }
     }
@@ -156,14 +174,24 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 Activity.RESULT_OK -> {
                     data?.let {
                         val place = Autocomplete.getPlaceFromIntent(data)
-                        Log.e("MapFragment", "Place: ${place.name}, ${place.id}")
+                        Log.i("MapFragment", "Place: ${place.name}, ${place.id} ${place.latLng}")
+                        with(place){
+                            mapFragmentViewModel.setCurrentLocation(
+                                LocationItem(
+                                    id ?: "",
+                                    name ?: "",
+                                    latLng = LatLng(latLng!!.latitude, latLng!!.longitude),
+                                    address?:""
+                                )
+                            )
+                        }
                     }
                 }
                 AutocompleteActivity.RESULT_ERROR -> {
                     // TODO: Handle the error.
                     data?.let {
                         val status = Autocomplete.getStatusFromIntent(data)
-                        Log.e("MapFragment", status.statusMessage?: " ")
+                        Log.e("MapFragment", status.statusMessage ?: " ")
                     }
                 }
                 Activity.RESULT_CANCELED -> {
@@ -235,7 +263,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         if (::fusedLocationProviderClient.isInitialized) {
             fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
                 location?.let {
-                    mapFragmentViewModel.setMyLocation(it)
+                    mapFragmentViewModel.setCurrentLocation(
+                        LocationItem(
+                            id = "CURRENT_LOCATION",
+                            name = "Current Location",
+                            latLng = LatLng(location.latitude, location.longitude),
+                            address = ""
+                        )
+                    )
                 } ?: setLocationSettings()
             }
         }
@@ -348,6 +383,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(p0: GoogleMap?) {
         p0?.let {
             googleMap = it
+            it.setOnInfoWindowClickListener(this);
+        }
+    }
+
+    override fun onInfoWindowClick(p0: Marker?) {
+        p0?.let{
+            if(it.title == "Current Location") return
+            mapFragmentViewModel.setInfoWindowClicked(true)
         }
     }
 }
