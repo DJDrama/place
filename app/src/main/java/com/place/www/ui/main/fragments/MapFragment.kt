@@ -89,7 +89,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
-
         requestPermissionsIfNecessary()
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
@@ -134,6 +133,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
             it?.let { locationItem ->
                 googleMap?.let { gMap ->
                     with(gMap) {
+
                         moveCamera(
                             CameraUpdateFactory.newLatLngZoom(
                                 locationItem.latLng,
