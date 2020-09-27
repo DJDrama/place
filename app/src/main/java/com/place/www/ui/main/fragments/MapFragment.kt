@@ -60,8 +60,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     private var locationCallback: LocationCallback? = null
     private var requestingLocationUpdates = false
 
-    private var googleMap: GoogleMap? = null
-
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
@@ -79,7 +77,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     override fun onDestroyView() {
         super.onDestroyView()
         binding.map.onDestroy()
-        googleMap?.clear()
+        mapFragmentViewModel.clearGoogleMap()
         if (locationCallback != null) {
             locationCallback = null
         }
@@ -129,30 +127,36 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     }
 
     private fun subscribeObservers() {
-        mapFragmentViewModel.locationItem.observe(viewLifecycleOwner) {
-            it?.let { locationItem ->
-                googleMap?.let { gMap ->
-                    with(gMap) {
+        mapFragmentViewModel.mapReadyAndLocationMediatorLiveData.observe(viewLifecycleOwner) {
+            it?.run {
+                if (isMapReady) {
+                    this.googleMap?.let { gMap ->
+                        this.location?.let { locationItem ->
+                            with(gMap) {
+                                moveCamera(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        locationItem.latLng,
+                                        ZOOM_LEVEL
+                                    )
+                                )
+                                clear()
+                                val markerOptions =
+                                    MarkerOptions().position(locationItem.latLng!!).title(locationItem.name)
+                                val marker = addMarker(markerOptions)
+                                marker.showInfoWindow()
+                                setOnInfoWindowClickListener(this@MapFragment)
 
-                        moveCamera(
-                            CameraUpdateFactory.newLatLngZoom(
-                                locationItem.latLng,
-                                ZOOM_LEVEL
-                            )
-                        )
-                        clear()
-                        val markerOptions =
-                            MarkerOptions().position(locationItem.latLng!!).title(locationItem.name)
-                        val marker = addMarker(markerOptions)
-                        marker.showInfoWindow()
+                            }
+                        } ?: if (requestingLocationUpdates) {
+                            startLocationUpdates()
+                        } else {
+                            setLocationSettings()
+                        }
                     }
                 }
-            } ?: if (requestingLocationUpdates) {
-                startLocationUpdates()
-            } else {
-                setLocationSettings()
             }
         }
+
         mapFragmentViewModel.infoWindowClicked.observe(viewLifecycleOwner){
             it?.let{boolValue->
                 if(boolValue){
@@ -188,7 +192,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                     }
                 }
                 AutocompleteActivity.RESULT_ERROR -> {
-                    // TODO: Handle the error.
                     data?.let {
                         val status = Autocomplete.getStatusFromIntent(data)
                         Log.e("MapFragment", status.statusMessage ?: " ")
@@ -382,8 +385,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
 
     override fun onMapReady(p0: GoogleMap?) {
         p0?.let {
-            googleMap = it
-            it.setOnInfoWindowClickListener(this);
+            mapFragmentViewModel.setMapReady(true)
+            mapFragmentViewModel.setGoogleMap(it)
         }
     }
 
