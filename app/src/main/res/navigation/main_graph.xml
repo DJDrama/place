@@ -21,7 +21,11 @@
         android:id="@+id/myProfileFragment"
         android:name="com.place.www.ui.main.fragments.MyProfileFragment"
         android:label="@string/label_my_profile"
-        tools:layout="@layout/fragment_my_profile" />
+        tools:layout="@layout/fragment_my_profile" >
+        <action
+            android:id="@+id/action_myProfileFragment_to_myPlacesFragment"
+            app:destination="@id/myPlacesFragment" />
+    </fragment>
     <fragment
         android:id="@+id/mapDetailFragment"
         tools:layout="@layout/fragment_map_detail"
@@ -31,4 +35,9 @@
             android:name="locationItem"
             app:argType="com.place.www.model.LocationItem" />
     </fragment>
+    <fragment
+        android:id="@+id/myPlacesFragment"
+        tools:layout="@layout/fragment_my_places"
+        android:name="com.place.www.ui.main.fragments.MyPlacesFragment"
+        android:label="MyPlacesFragment" />
 </navigation>

@@ -1,6 +1,7 @@
 package com.place.www.ui.main.fragments
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.IntentSender
@@ -18,6 +19,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.GoogleMap.*
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
 import com.google.android.libraries.maps.OnMapReadyCallback
@@ -126,6 +128,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
         subscribeObservers()
     }
 
+    @SuppressLint("MissingPermission")
     private fun subscribeObservers() {
         mapFragmentViewModel.mapReadyAndLocationMediatorLiveData.observe(viewLifecycleOwner) {
             it?.run {
@@ -141,11 +144,23 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                                 )
                                 clear()
                                 val markerOptions =
-                                    MarkerOptions().position(locationItem.latLng!!).title(locationItem.name)
+                                    MarkerOptions().position(locationItem.latLng!!)
+                                        .title(locationItem.name)
                                 val marker = addMarker(markerOptions)
                                 marker.showInfoWindow()
-                                setOnInfoWindowClickListener(this@MapFragment)
 
+                                setOnInfoWindowClickListener(this@MapFragment)
+                                isMyLocationEnabled = true
+                                setOnMyLocationButtonClickListener(object :
+                                    OnMyLocationButtonClickListener,
+                                    GoogleMap.OnMyLocationButtonClickListener {
+                                    override fun onMyLocationButtonClick(): Boolean {
+                                        startLocationUpdates()
+                                        //getLastLocation()
+                                        return false
+                                    }
+
+                                })
                             }
                         } ?: if (requestingLocationUpdates) {
                             startLocationUpdates()
@@ -157,10 +172,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
             }
         }
 
-        mapFragmentViewModel.infoWindowClicked.observe(viewLifecycleOwner){
-            it?.let{boolValue->
-                if(boolValue){
-                    mapFragmentViewModel.getLocationItem()?.let{locationItem->
+        mapFragmentViewModel.infoWindowClicked.observe(viewLifecycleOwner) {
+            it?.let { boolValue ->
+                if (boolValue) {
+                    mapFragmentViewModel.getLocationItem()?.let { locationItem ->
                         val action = MapFragmentDirections.actionMapFragmentToMapDetailFragment(
                             locationItem
                         )
@@ -179,13 +194,13 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                     data?.let {
                         val place = Autocomplete.getPlaceFromIntent(data)
                         Log.i("MapFragment", "Place: ${place.name}, ${place.id} ${place.latLng}")
-                        with(place){
+                        with(place) {
                             mapFragmentViewModel.setCurrentLocation(
                                 LocationItem(
                                     id ?: "",
                                     name ?: "",
                                     latLng = LatLng(latLng!!.latitude, latLng!!.longitude),
-                                    address?:""
+                                    address ?: ""
                                 )
                             )
                         }
@@ -391,8 +406,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     }
 
     override fun onInfoWindowClick(p0: Marker?) {
-        p0?.let{
-            if(it.title == "Current Location") return
+        p0?.let {
+            if (it.title == "Current Location") return
             mapFragmentViewModel.setInfoWindowClicked(true)
         }
     }
