@@ -13,4 +13,8 @@ class MapDetailFragmentViewModel : ViewModel() {
     fun setLocationItem(locationItem: LocationItem){
         _locationItem.value = locationItem
     }
+
+    fun getLocationItem(): LocationItem? {
+        return locationItem.value
+    }
 }

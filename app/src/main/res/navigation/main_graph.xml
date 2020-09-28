@@ -34,10 +34,22 @@
         <argument
             android:name="locationItem"
             app:argType="com.place.www.model.LocationItem" />
+        <action
+            android:id="@+id/action_mapDetailFragment_to_createPostFragment"
+            app:destination="@id/createPostFragment" />
     </fragment>
     <fragment
         android:id="@+id/myPlacesFragment"
         tools:layout="@layout/fragment_my_places"
         android:name="com.place.www.ui.main.fragments.MyPlacesFragment"
         android:label="MyPlacesFragment" />
+    <fragment
+        android:id="@+id/createPostFragment"
+        tools:layout="@layout/fragment_create_post"
+        android:name="com.place.www.ui.main.fragments.CreatePostFragment"
+        android:label="@string/create" >
+        <argument
+            android:name="locationItem"
+            app:argType="com.place.www.model.LocationItem" />
+    </fragment>
 </navigation>
