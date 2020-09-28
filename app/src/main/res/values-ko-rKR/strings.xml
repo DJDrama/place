@@ -21,6 +21,7 @@
     <string name="add_photo">사진 추가하기</string>
     <string name="visited_date">방문 날짜</string>
     <string name="modify">수정</string>
+    <string name="detail">자세히</string>
 
 
 </resources>

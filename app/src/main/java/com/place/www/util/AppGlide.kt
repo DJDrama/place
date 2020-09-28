@@ -8,19 +8,18 @@ import com.firebase.ui.storage.images.FirebaseImageLoader
 import com.google.firebase.storage.StorageReference
 import java.io.InputStream
 
-@GlideModule
-class AppGlide: AppGlideModule(){
-    
-    override fun registerComponents(
-        context: android.content.Context,
-        glide: Glide,
-        registry: Registry
-    ) {
-        super.registerComponents(context, glide, registry)
-        registry.append(
-            StorageReference::class.java, InputStream::class.java,
-            FirebaseImageLoader.Factory()
-        )
 
-    }
-}
+//@GlideModule
+//class AppGlide: AppGlideModule(){
+//    override fun registerComponents(
+//        context: android.content.Context,
+//        glide: Glide,
+//        registry: Registry
+//    ) {
+//        super.registerComponents(context, glide, registry)
+//        registry.append(
+//            StorageReference::class.java, InputStream::class.java,
+//            FirebaseImageLoader.Factory()
+//        )
+//    }
+//}

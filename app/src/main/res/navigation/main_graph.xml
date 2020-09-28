@@ -30,7 +30,7 @@
         android:id="@+id/mapDetailFragment"
         tools:layout="@layout/fragment_map_detail"
         android:name="com.place.www.ui.main.fragments.MapDetailFragment"
-        android:label="MapDetailFragment" >
+        android:label="@string/detail" >
         <argument
             android:name="locationItem"
             app:argType="com.place.www.model.LocationItem" />

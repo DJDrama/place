@@ -86,7 +86,7 @@ class CreatePostFragment : Fragment(), View.OnClickListener {
     private fun subscribeObservers() {
         createPostViewModel.resultUri.observe(viewLifecycleOwner) { resultUri ->
             resultUri?.let {
-                Glide.with(requireActivity())
+                Glide.with(requireContext())
                     .load(it)
                     .centerCrop()
                     .into(binding.ivAddPhoto)

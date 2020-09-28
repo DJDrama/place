@@ -6,13 +6,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.firestore.FirebaseFirestore
 import com.place.www.R
 import com.place.www.databinding.FragmentMapBinding
 import com.place.www.databinding.FragmentMapDetailBinding
+import com.place.www.model.PlaceItem
 
-class MapDetailFragment : Fragment() {
+class MapDetailFragment : Fragment(), PlaceItemClickListener {
     private val args: MapDetailFragmentArgs by navArgs()
     private val mapDetailViewModel: MapDetailFragmentViewModel by viewModels()
+    private lateinit var firebaseFirestore: FirebaseFirestore
+    private lateinit var placeRecyclerViewAdapter: PlaceRecyclerViewAdapter
 
     private var _binding: FragmentMapDetailBinding? = null
     private val binding get() = _binding!!
@@ -28,8 +33,36 @@ class MapDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
+        firebaseFirestore = FirebaseFirestore.getInstance()
         mapDetailViewModel.setLocationItem(args.locationItem)
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        placeRecyclerViewAdapter = PlaceRecyclerViewAdapter(this)
+        binding.recyclerView.adapter = placeRecyclerViewAdapter
+
+        fetchItemsFromFirebase()
         subscribeObservers()
+    }
+    private fun fetchItemsFromFirebase(){
+        firebaseFirestore.collection("places")
+            .whereEqualTo("id", mapDetailViewModel.getLocationItem()?.id)
+            .get()
+            .addOnSuccessListener {
+                //Update RecyclerView
+                val list = mutableListOf<PlaceItem>()
+                for(document in it.documents){
+                    val placeItem = document.toObject(PlaceItem::class.java)
+                    placeItem?.documentId = document.id
+                    placeItem?.let{pl->
+                        list.add(pl)
+                    }
+                }
+                if(list.size!=0){
+                    placeRecyclerViewAdapter.submitList(list)
+                }
+            }
+            .addOnFailureListener {
+                //FAILED
+            }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -69,5 +102,9 @@ class MapDetailFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onPlaceItemClicked(place: PlaceItem) {
+
     }
 }
