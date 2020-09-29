@@ -105,6 +105,9 @@ class MapDetailFragment : Fragment(), PlaceItemClickListener {
     }
 
     override fun onPlaceItemClicked(place: PlaceItem) {
-
+        val action = MapDetailFragmentDirections.actionMapDetailFragmentToItemDetailFragment(
+            place
+        )
+        findNavController().navigate(action)
     }
 }

@@ -37,12 +37,19 @@
         <action
             android:id="@+id/action_mapDetailFragment_to_createPostFragment"
             app:destination="@id/createPostFragment" />
+        <action
+            android:id="@+id/action_mapDetailFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/myPlacesFragment"
         tools:layout="@layout/fragment_my_places"
         android:name="com.place.www.ui.main.fragments.MyPlacesFragment"
-        android:label="MyPlacesFragment" />
+        android:label="@string/my_places" >
+        <action
+            android:id="@+id/action_myPlacesFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment" />
+    </fragment>
     <fragment
         android:id="@+id/createPostFragment"
         tools:layout="@layout/fragment_create_post"
@@ -51,5 +58,14 @@
         <argument
             android:name="locationItem"
             app:argType="com.place.www.model.LocationItem" />
+    </fragment>
+    <fragment
+        android:id="@+id/itemDetailFragment"
+        tools:layout="@layout/fragment_item_detail"
+        android:name="com.place.www.ui.main.fragments.ItemDetailFragment"
+        android:label="@string/detail" >
+        <argument
+            android:name="placeItem"
+            app:argType="com.place.www.model.PlaceItem" />
     </fragment>
 </navigation>

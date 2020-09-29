@@ -21,5 +21,6 @@
     <string name="visited_date">Visited Date</string>
     <string name="modify">Modify</string>
     <string name="detail">Detail</string>
+    <string name="review">Review</string>
 
 </resources>
