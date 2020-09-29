@@ -13,11 +13,11 @@ import com.place.www.databinding.FragmentMapBinding
 import com.place.www.databinding.FragmentMapDetailBinding
 import com.place.www.model.PlaceItem
 
-class MapDetailFragment : Fragment(), PlaceItemClickListener {
+class MapDetailFragment : Fragment(), ReviewItemClickListener {
     private val args: MapDetailFragmentArgs by navArgs()
     private val mapDetailViewModel: MapDetailFragmentViewModel by viewModels()
     private lateinit var firebaseFirestore: FirebaseFirestore
-    private lateinit var placeRecyclerViewAdapter: PlaceRecyclerViewAdapter
+    private lateinit var reviewRecyclerViewAdapter: ReviewRecyclerViewAdapter
 
     private var _binding: FragmentMapDetailBinding? = null
     private val binding get() = _binding!!
@@ -36,8 +36,8 @@ class MapDetailFragment : Fragment(), PlaceItemClickListener {
         firebaseFirestore = FirebaseFirestore.getInstance()
         mapDetailViewModel.setLocationItem(args.locationItem)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        placeRecyclerViewAdapter = PlaceRecyclerViewAdapter(this)
-        binding.recyclerView.adapter = placeRecyclerViewAdapter
+        reviewRecyclerViewAdapter = ReviewRecyclerViewAdapter(this)
+        binding.recyclerView.adapter = reviewRecyclerViewAdapter
 
         fetchItemsFromFirebase()
         subscribeObservers()
@@ -57,7 +57,7 @@ class MapDetailFragment : Fragment(), PlaceItemClickListener {
                     }
                 }
                 if(list.size!=0){
-                    placeRecyclerViewAdapter.submitList(list)
+                    reviewRecyclerViewAdapter.submitList(list)
                 }
             }
             .addOnFailureListener {
@@ -104,7 +104,7 @@ class MapDetailFragment : Fragment(), PlaceItemClickListener {
         _binding = null
     }
 
-    override fun onPlaceItemClicked(place: PlaceItem) {
+    override fun onReviewItemClicked(place: PlaceItem) {
         val action = MapDetailFragmentDirections.actionMapDetailFragmentToItemDetailFragment(
             place
         )

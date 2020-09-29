@@ -18,6 +18,7 @@ import com.place.www.databinding.FragmentMyProfileBinding
 import com.place.www.model.PlaceItem
 
 
+
 class MyPlacesFragment : Fragment(), PlaceItemClickListener {
     private var _binding: FragmentMyPlacesBinding? = null
     private val binding
@@ -52,16 +53,16 @@ class MyPlacesFragment : Fragment(), PlaceItemClickListener {
             .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser?.uid)
             .get()
             .addOnSuccessListener {
-                val list = mutableListOf<PlaceItem>()
+                val set = mutableSetOf<PlaceItem>()
                 for (document in it.documents) {
                     val placeItem = document.toObject(PlaceItem::class.java)
                     placeItem?.documentId = document.id
                     placeItem?.let { pl ->
-                        list.add(pl)
+                        set.add(pl)
                     }
                 }
-                if (list.isNotEmpty()) {
-                    placeRecyclerViewAdapter.submitList(list)
+                if (set.isNotEmpty()) {
+                    placeRecyclerViewAdapter.submitList(set.toList())
                 }
             }
             .addOnFailureListener {
@@ -69,11 +70,7 @@ class MyPlacesFragment : Fragment(), PlaceItemClickListener {
             }
     }
 
-    override fun onPlaceItemClicked(place: PlaceItem) {
-        val action = MyPlacesFragmentDirections.actionMyPlacesFragmentToItemDetailFragment(
-            place
-        )
-        findNavController().navigate(action)
 
+    override fun onPlaceItemClicked(place: PlaceItem) {
     }
 }

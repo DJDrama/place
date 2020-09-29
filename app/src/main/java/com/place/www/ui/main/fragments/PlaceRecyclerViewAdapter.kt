@@ -39,8 +39,8 @@ constructor(
     }
 
     override fun onBindViewHolder(holder: PlaceViewHolder, position: Int) {
-        val placeItem = getItem(position)
-        holder.bind(placeItem)
+        val item = getItem(position)
+        holder.bind(item)
     }
 
     class PlaceViewHolder(
@@ -52,13 +52,8 @@ constructor(
                 itemView.setOnClickListener {
                     placeItemClickListener?.onPlaceItemClicked(placeItem)
                 }
-                val ref = FirebaseStorage.getInstance().reference
-                ref.child("images/" + placeItem.image).downloadUrl.addOnSuccessListener {
-                    Glide.with(root.context).load(it).into(imageView2)
-                }
-                tvEmailAddress.text = placeItem.email
-                tvContent.text = placeItem.content
-                tvDate.text = placeItem.date
+                tvName.text = placeItem.name
+                tvAddress.text = placeItem.address
             }
         }
     }
