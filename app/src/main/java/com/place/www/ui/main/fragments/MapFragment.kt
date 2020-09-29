@@ -20,9 +20,11 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.GoogleMap.*
+import com.google.android.gms.maps.UiSettings
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
 import com.google.android.libraries.maps.OnMapReadyCallback
+import com.google.android.libraries.maps.model.BitmapDescriptorFactory
 import com.google.android.libraries.maps.model.LatLng
 import com.google.android.libraries.maps.model.Marker
 import com.google.android.libraries.maps.model.MarkerOptions
@@ -30,9 +32,12 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.place.www.R
 import com.place.www.databinding.FragmentMapBinding
 import com.place.www.model.LocationItem
+import com.place.www.model.PlaceItem
 import com.place.www.ui.showToast
 
 
@@ -66,6 +71,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     private val binding get() = _binding!!
 
     private val mapFragmentViewModel: MapFragmentViewModel by viewModels()
+
+    private lateinit var firebaseFirestore: FirebaseFirestore
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -124,8 +132,39 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                 .build(requireContext())
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
         }
+        firebaseFirestore = FirebaseFirestore.getInstance()
 
         subscribeObservers()
+    }
+    private fun fetchMyPlaces(googleMap: GoogleMap){
+        firebaseFirestore.collection("places")
+            .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser?.uid)
+            .get()
+            .addOnSuccessListener {
+                val list = mutableListOf<PlaceItem>()
+                for(document in it.documents){
+                    val placeItem = document.toObject(PlaceItem::class.java)
+                    placeItem?.documentId = document.id
+                    placeItem?.let{pl->
+                        list.add(pl)
+                    }
+                }
+                if(list.size!=0){
+                    list.forEach {placeItem->
+                        val markerOptions = MarkerOptions().position(LatLng(placeItem.lat, placeItem.lon))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            .title(placeItem.name)
+                        googleMap.apply {
+                            val marker = addMarker(markerOptions)
+                            marker.tag = placeItem
+                            marker.showInfoWindow()
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                //ERROR
+            }
     }
 
     @SuppressLint("MissingPermission")
@@ -147,10 +186,12 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                                     MarkerOptions().position(locationItem.latLng!!)
                                         .title(locationItem.name)
                                 val marker = addMarker(markerOptions)
+                                marker.tag = locationItem
                                 marker.showInfoWindow()
 
                                 setOnInfoWindowClickListener(this@MapFragment)
                                 isMyLocationEnabled = true
+                                uiSettings.isZoomControlsEnabled=true
                                 setOnMyLocationButtonClickListener(object :
                                     OnMyLocationButtonClickListener,
                                     GoogleMap.OnMyLocationButtonClickListener {
@@ -159,8 +200,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                                         //getLastLocation()
                                         return false
                                     }
-
                                 })
+
+                                //After Google map has been initialized, fetch my visited places
+                                fetchMyPlaces(this)
                             }
                         } ?: if (requestingLocationUpdates) {
                             startLocationUpdates()
@@ -408,6 +451,22 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     override fun onInfoWindowClick(p0: Marker?) {
         p0?.let {
             if (it.title == "Current Location") return
+            var item = it.tag
+
+            if(item is PlaceItem){
+                item = item as PlaceItem
+                mapFragmentViewModel.setCurrentLocation(
+                    LocationItem(
+                        item.id ?: "",
+                        item.name ?: "",
+                        latLng = LatLng(item.lat, item.lon),
+                        item.address ?: ""
+                    )
+                )
+            }else{
+                item = item as LocationItem
+                mapFragmentViewModel.setCurrentLocation(item)
+            }
             mapFragmentViewModel.setInfoWindowClicked(true)
         }
     }

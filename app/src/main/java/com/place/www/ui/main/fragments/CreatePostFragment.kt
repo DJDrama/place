@@ -141,6 +141,8 @@ class CreatePostFragment : Fragment(), View.OnClickListener {
                     val address = args.locationItem.address
                     val content = binding.edtText.text.toString()
                     val date = binding.tvVisitedDate.text.toString()
+                    val lat = args.locationItem.latLng?.latitude
+                    val lon = args.locationItem.latLng?.longitude
 
 
                     val data = hashMapOf(
@@ -151,6 +153,8 @@ class CreatePostFragment : Fragment(), View.OnClickListener {
                         "image" to file.name,
                         "email" to firebaseAuth.currentUser?.email,
                         "uid" to firebaseAuth.currentUser?.uid,
+                        "lat" to lat,
+                        "lon" to lon,
                         "date" to date
                     )
                     firebaseFirestore.collection("places")

@@ -9,5 +9,7 @@ data class PlaceItem(
     val image:String="",
     val email: String="",
     val uid: String="",
+    val lat: Double=0.0,
+    val lon: Double=0.0,
     var documentId: String=""
 )

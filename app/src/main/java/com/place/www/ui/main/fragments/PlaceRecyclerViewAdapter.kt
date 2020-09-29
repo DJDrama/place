@@ -1,6 +1,5 @@
 package com.place.www.ui.main.fragments
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -26,7 +25,7 @@ constructor(
         }
 
         override fun areContentsTheSame(oldItem: PlaceItem, newItem: PlaceItem): Boolean {
-            return oldItem.name == newItem.name
+            return oldItem.id == newItem.id
         }
     }
 
@@ -49,9 +48,8 @@ constructor(
         private val placeItemClickListener: PlaceItemClickListener?
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(placeItem: PlaceItem) {
-            with(binding) {
-
-                root.setOnClickListener {
+            binding.apply {
+                itemView.setOnClickListener {
                     placeItemClickListener?.onPlaceItemClicked(placeItem)
                 }
                 val ref = FirebaseStorage.getInstance().reference
