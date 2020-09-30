@@ -47,8 +47,8 @@
         android:name="com.place.www.ui.main.fragments.MyPlacesFragment"
         android:label="@string/my_places" >
         <action
-            android:id="@+id/action_myPlacesFragment_to_itemDetailFragment"
-            app:destination="@id/itemDetailFragment" />
+            android:id="@+id/action_myPlacesFragment_to_mapDetailFragment"
+            app:destination="@id/mapDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/createPostFragment"

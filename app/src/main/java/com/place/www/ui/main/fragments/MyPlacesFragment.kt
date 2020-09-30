@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.place.www.databinding.FragmentMyPlacesBinding
 import com.place.www.databinding.FragmentMyProfileBinding
+import com.place.www.model.LocationItem
 import com.place.www.model.PlaceItem
 
 
@@ -72,5 +73,14 @@ class MyPlacesFragment : Fragment(), PlaceItemClickListener {
 
 
     override fun onPlaceItemClicked(place: PlaceItem) {
+        val locationItem = LocationItem(
+            place.id ?: "",
+            place.name ?: "",
+            latLng = LatLng(place.lat, place.lon),
+            place.address ?: ""
+        )
+        val action = MyPlacesFragmentDirections
+            .actionMyPlacesFragmentToMapDetailFragment(locationItem)
+        findNavController().navigate(action)
     }
 }
