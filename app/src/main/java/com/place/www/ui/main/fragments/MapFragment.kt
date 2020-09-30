@@ -20,7 +20,6 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.GoogleMap.*
-import com.google.android.gms.maps.UiSettings
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
 import com.google.android.libraries.maps.OnMapReadyCallback
@@ -70,7 +69,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
-    private val mapFragmentViewModel: MapFragmentViewModel by viewModels()
+    private val mapViewModel: MapViewModel by viewModels()
 
     private lateinit var firebaseFirestore: FirebaseFirestore
 
@@ -87,7 +86,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
     override fun onDestroyView() {
         super.onDestroyView()
         binding.map.onDestroy()
-        mapFragmentViewModel.clearGoogleMap()
+        mapViewModel.clearGoogleMap()
         if (locationCallback != null) {
             locationCallback = null
         }
@@ -104,7 +103,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                 for (location in locationResult.locations) {
                     // Update UI with location data
 
-                    mapFragmentViewModel.setCurrentLocation(
+                    mapViewModel.setCurrentLocation(
                         LocationItem(
                             id = "CURRENT_LOCATION",
                             name = "Current Location",
@@ -169,7 +168,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
 
     @SuppressLint("MissingPermission")
     private fun subscribeObservers() {
-        mapFragmentViewModel.mapReadyAndLocationMediatorLiveData.observe(viewLifecycleOwner) {
+        mapViewModel.mapReadyAndLocationMediatorLiveData.observe(viewLifecycleOwner) {
             it?.run {
                 if (isMapReady) {
                     this.googleMap?.let { gMap ->
@@ -215,15 +214,15 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
             }
         }
 
-        mapFragmentViewModel.infoWindowClicked.observe(viewLifecycleOwner) {
+        mapViewModel.infoWindowClicked.observe(viewLifecycleOwner) {
             it?.let { boolValue ->
                 if (boolValue) {
-                    mapFragmentViewModel.getLocationItem()?.let { locationItem ->
+                    mapViewModel.getLocationItem()?.let { locationItem ->
                         val action = MapFragmentDirections.actionMapFragmentToMapDetailFragment(
                             locationItem
                         )
                         findNavController().navigate(action)
-                        mapFragmentViewModel.setInfoWindowClicked(false)
+                        mapViewModel.setInfoWindowClicked(false)
                     }
                 }
             }
@@ -238,7 +237,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                         val place = Autocomplete.getPlaceFromIntent(data)
                         Log.i("MapFragment", "Place: ${place.name}, ${place.id} ${place.latLng}")
                         with(place) {
-                            mapFragmentViewModel.setCurrentLocation(
+                            mapViewModel.setCurrentLocation(
                                 LocationItem(
                                     id ?: "",
                                     name ?: "",
@@ -324,7 +323,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
         if (::fusedLocationProviderClient.isInitialized) {
             fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
                 location?.let {
-                    mapFragmentViewModel.setCurrentLocation(
+                    mapViewModel.setCurrentLocation(
                         LocationItem(
                             id = "CURRENT_LOCATION",
                             name = "Current Location",
@@ -443,8 +442,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
 
     override fun onMapReady(p0: GoogleMap?) {
         p0?.let {
-            mapFragmentViewModel.setMapReady(true)
-            mapFragmentViewModel.setGoogleMap(it)
+            mapViewModel.setMapReady(true)
+            mapViewModel.setGoogleMap(it)
         }
     }
 
@@ -455,7 +454,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
 
             if(item is PlaceItem){
                 item = item as PlaceItem
-                mapFragmentViewModel.setCurrentLocation(
+                mapViewModel.setCurrentLocation(
                     LocationItem(
                         item.id ?: "",
                         item.name ?: "",
@@ -465,9 +464,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickL
                 )
             }else{
                 item = item as LocationItem
-                mapFragmentViewModel.setCurrentLocation(item)
+                mapViewModel.setCurrentLocation(item)
             }
-            mapFragmentViewModel.setInfoWindowClicked(true)
+            mapViewModel.setInfoWindowClicked(true)
         }
     }
 }

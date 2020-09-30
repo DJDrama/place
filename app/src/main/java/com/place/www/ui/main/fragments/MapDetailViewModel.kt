@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.place.www.model.LocationItem
 
-class MapDetailFragmentViewModel : ViewModel() {
+class MapDetailViewModel : ViewModel() {
     private val _locationItem = MutableLiveData<LocationItem>()
     val locationItem: LiveData<LocationItem>
         get() = _locationItem

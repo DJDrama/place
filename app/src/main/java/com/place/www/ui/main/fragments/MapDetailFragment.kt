@@ -9,13 +9,12 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.firestore.FirebaseFirestore
 import com.place.www.R
-import com.place.www.databinding.FragmentMapBinding
 import com.place.www.databinding.FragmentMapDetailBinding
 import com.place.www.model.PlaceItem
 
 class MapDetailFragment : Fragment(), ReviewItemClickListener {
     private val args: MapDetailFragmentArgs by navArgs()
-    private val mapDetailViewModel: MapDetailFragmentViewModel by viewModels()
+    private val mapDetailViewModel: MapDetailViewModel by viewModels()
     private lateinit var firebaseFirestore: FirebaseFirestore
     private lateinit var reviewRecyclerViewAdapter: ReviewRecyclerViewAdapter
 
