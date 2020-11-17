@@ -1,5 +1,6 @@
 package com.place.www.ui.main.fragments
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -64,4 +65,5 @@ class MapViewModel : ViewModel() {
         _isMapReady.value =false
         _googleMap.value?.clear()
     }
+
 }
